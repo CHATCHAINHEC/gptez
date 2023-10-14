@@ -1,26 +1,74 @@
-const string path = "wallet-beacon-sample.db";
+import { TezosToolkit } from "@taquito/taquito";
+import { BeaconWallet } from "@taquito/beacon-wallet";
+import config from "./config";
 
-var factory = new WalletBeaconClientFactory();
+const preferredNetwork = "ghostnet";
+const options = {
+  name: "NFT",
+  iconUrl: "https://tezostaquito.io/img/favicon.png",
+  preferredNetwork: preferredNetwork,
+};
+const rpcURL = "https://ghostnet.ecadinfra.com/*";
+const wallet = new BeaconWallet(options);
 
-var options = new BeaconOptions
-{
-    AppName = "Wallet sample",
-    AppUrl = "https://awesome-wallet.io",
-    IconUrl = "https://services.tzkt.io/v1/avatars/KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
-    KnownRelayServers = Constants.KnownRelayServers,
-
-    // for some operating systems compability reasons we should use Mode=Exclusive for LiteDB.
-    DatabaseConnectionString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? $"Filename={path}; Connection=Shared;"
-        : $"Filename={path}; Mode=Exclusive;"
+const getActiveAccount = async () => {
+  return await wallet.client.getActiveAccount();
 };
 
-// creating test logger, you can provide your own app-context logger here.
-Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.Console()
-    .CreateLogger();
+const connectWallet = async () => {
+  let account = await wallet.client.getActiveAccount();
 
-ILoggerProvider loggerProvider = new SerilogLoggerProvider(Logger);
+  if (!account) {
+    await wallet.requestPermissions({
+      network: { type: preferredNetwork },
+    });
+    account = await wallet.client.getActiveAccount();
+    const address=await wallet.getPKH();
+  }
+  return {wallet,address}   ;
+};
 
-IWalletBeaconClient beaconWalletClient = BeaconClientFactory.Create<IWalletBeaconClient>(options, loggerProvider);
+const disconnectWallet = async () => {
+  await wallet.disconnect();
+  return { success: true, wallet: null };
+};
+
+const checkIfWalletConnected = async (wallet) => {
+  try {
+    const activeAccount = await wallet.client.getActiveAccount();
+    if (!activeAccount) {
+      await wallet.client.requestPermissions({
+        type: { network: preferredNetwork },
+      });
+    }
+    return {
+      success: true,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+    };
+  }
+};
+
+export const changeName = async (name) => {
+  // const wallet = new BeaconWallet(options);
+  const response = await checkIfWalletConnected(wallet);
+
+  if (response.success) {
+    const tezos = new TezosToolkit(rpcURL);
+    tezos.setWalletProvider(wallet);
+    const contract = await tezos.wallet.at(config.contractAddress);
+    const operation = await contract.methods.default(name).send();
+    const result = await operation.confirmation();
+    console.log(result);
+  }
+};
+
+export {
+  connectWallet,
+  disconnectWallet,
+  getActiveAccount,
+  checkIfWalletConnected,
+};

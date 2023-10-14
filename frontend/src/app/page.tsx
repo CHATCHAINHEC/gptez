@@ -7,6 +7,9 @@ import Chatbot from './components/Chatbot';
 import CryptoPriceCard from './components/Pricecard';
 import { ChakraProvider,Box} from '@chakra-ui/react';
 import DayNightSlider from './components/Slider';
+
+import { WalletProvider } from './components/Web3context';
+
 const DarkModeSwitch = () => {
   const [isDark, setIsDark] = React.useState(false);
 
@@ -34,6 +37,7 @@ const DarkModeSwitch = () => {
 
 const Page = () => {
   return (
+    <WalletProvider>
     <ChakraProvider>
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
       <Header />
@@ -55,6 +59,7 @@ const Page = () => {
       <Footer />
     </div>
     </ChakraProvider>
+    </WalletProvider>
   );
 };
 
