@@ -18,22 +18,19 @@ const Chatbot = () => {
     setMessages(newMessages);
 
     try {
-      const response = await fetch('http://localhost:3006/generate', {
+      const response = await fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: inputMessage })
+        body: JSON.stringify({ user_input: inputMessage })
       });
 
       const data = await response.json();
 
       // Ajouter le message du chatbot à l'historique
-      newMessages.push({ type: 'bot', text: data });
+      newMessages.push({ type: 'bot', text: data.response });
       setMessages(newMessages);
-
-      // Analyser la réponse pour déterminer l'action du contrat intelligent à exécuter
-      determineContractFunction(data);
 
     } catch (error) {
       console.error("Error communicating with backend:", error);
@@ -42,28 +39,6 @@ const Chatbot = () => {
     setInputMessage('');
   };
 
-  const determineContractFunction = (responseText: string) => {
-    if (responseText.includes('transfer')) {
-        const addresses = responseText.match(/0x[a-fA-F0-9]{40}/g);
-        if (addresses && addresses.length === 2) {
-            transferFunction(addresses[0], addresses[1]);
-        }
-    } else if (responseText.includes('Buy')) {
-        const amountMatch = responseText.match(/\b\d+\b/);
-        if (amountMatch) {
-            const amount = Number(amountMatch[0]);
-            mintFunction(amount, "XTZ");
-        }
-    }
-};
-
-const transferFunction = (fromAddress: string, toAddress: string): void => {
-  // Your logic to call the smart contract for transfer goes here
-};
-
-const mintFunction = (amount: number, token: string): void => {
-  // Your logic to call the smart contract for minting goes here
-};
   return (
     <div className="left-0 right-0 bg-white shadow-lg rounded-t-lg overflow-hidden w-80 h-screen/2">
       <div className="bg-indigo-500 text-white p-4">
