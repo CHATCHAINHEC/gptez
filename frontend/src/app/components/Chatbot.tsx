@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+const SYSTEM_PROMPT = `[SYSTEM]
+Lorsque vous répondez aux questions, veuillez utiliser l'une des fonctions suivantes pour structurer votre réponse :
+
+buy(montant, token): Pour représenter un achat de tokens.
+transfert(token, montant, adresse): Pour représenter un transfert de tokens.
+Chaque fonction doit être utilisée avec les arguments appropriés. Par exemple, pour un achat de 50 tokens de type "ABC", votre réponse devrait ressembler à : buy(50, "ABC"). Assurez-vous de suivre cette structure pour une interaction optimale.`;
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -23,10 +29,11 @@ const Chatbot = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_input: inputMessage })
+        body: JSON.stringify({ user_input: SYSTEM_PROMPT+inputMessage })
       });
 
       const data = await response.json();
+      console.log("oui",data)
 
       // Ajouter le message du chatbot à l'historique
       newMessages.push({ type: 'bot', text: data.response });
