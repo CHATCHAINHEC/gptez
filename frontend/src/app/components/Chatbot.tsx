@@ -11,36 +11,59 @@ const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
 
   const handleSendMessage = async () => {
-    if (inputMessage.trim() === '') return; // Ne rien faire si le message est vide
+    if (inputMessage.trim() === '') return;
 
     // Ajouter le message de l'utilisateur à l'historique
     const newMessages = [...messages, { type: 'user', text: inputMessage }];
     setMessages(newMessages);
 
     try {
-      const response = await fetch('https://backend-1-x5452594.deta.app/generate', {
+      const response = await fetch('http://localhost:3006/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ prompt: inputMessage })
       });
-      console.log(response);
-      const data = await response.json();
-      console.log(data);
 
+      const data = await response.json();
 
       // Ajouter le message du chatbot à l'historique
       newMessages.push({ type: 'bot', text: data });
       setMessages(newMessages);
 
+      // Analyser la réponse pour déterminer l'action du contrat intelligent à exécuter
+      determineContractFunction(data);
+
     } catch (error) {
       console.error("Error communicating with backend:", error);
     }
 
-    setInputMessage(''); // Vider le champ de saisie
+    setInputMessage('');
   };
 
+  const determineContractFunction = (responseText: string) => {
+    if (responseText.includes('transfer')) {
+        const addresses = responseText.match(/0x[a-fA-F0-9]{40}/g);
+        if (addresses && addresses.length === 2) {
+            transferFunction(addresses[0], addresses[1]);
+        }
+    } else if (responseText.includes('Buy')) {
+        const amountMatch = responseText.match(/\b\d+\b/);
+        if (amountMatch) {
+            const amount = Number(amountMatch[0]);
+            mintFunction(amount, "XTZ");
+        }
+    }
+};
+
+const transferFunction = (fromAddress: string, toAddress: string): void => {
+  // Your logic to call the smart contract for transfer goes here
+};
+
+const mintFunction = (amount: number, token: string): void => {
+  // Your logic to call the smart contract for minting goes here
+};
   return (
     <div className="left-0 right-0 bg-white shadow-lg rounded-t-lg overflow-hidden w-80 h-screen/2">
       <div className="bg-indigo-500 text-white p-4">

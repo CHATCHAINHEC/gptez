@@ -1,36 +1,63 @@
-require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
-const OpenAI = require('openai');
+const axios = require('axios');
 
 const app = express();
-const port = 3001;
-const openai = new OpenAI(process.env.OPENAI_API_KEY);
+const PORT = 3006;
+const cors = require('cors');
 
-app.use(bodyParser.json());
+// Middleware pour parser les requêtes JSON
+app.use(express.json());
 
-app.post('/chat', async (req, res) => {
-  try {
-    const userInput = req.body.prompt;
+app.post('/generate', async (req, res) => {
+    const prompt = req.body.prompt;
 
-    const completion = await openai.chat.completions.create({
-      messages: [
-        { role: "system", content: "You are a helpful assistant." },
-        { role: "user", content: userInput }
-      ],
-      model: "gpt-3.5-turbo",
-    });
+    // Appelez l'API OpenAI ici (assurez-vous d'avoir configuré votre clé d'API)
+    const OPENAI_API_URL = 'https://api.openai.com/v1/engines/davinci/completions';
+    const API_KEY = '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 '; // !!! Remplacez par votre clé API et ne partagez jamais votre clé API en public !!!
 
-    const botResponse = completion.choices[0].message.content;
+    try {
+        const openaiResponse = await axios.post(OPENAI_API_URL, {
+            prompt: prompt,
+            max_tokens: 150,
+        }, {
+            headers: {
+                'Authorization': `Bearer ${API_KEY}`,
+                'Content-Type': 'application/json',
+            }
+        });
 
-    res.json({ message: botResponse });
+        const responseText = openaiResponse.data.choices[0].text.trim();
 
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+        // Traitement du texte pour obtenir seulement les mots clés
+        let keywords = [];
+        if (responseText.includes('Buy')) {
+            keywords.push('Buy');
+            const amountTokenMatch = responseText.match(/(\d+)\s+(\w+)/);
+            if (amountTokenMatch) {
+                keywords.push(`amount: ${amountTokenMatch[1]}`);
+                keywords.push(`token: ${amountTokenMatch[2]}`);
+            }
+        } else if (responseText.includes('transfer')) {
+            keywords.push('transfer');
+            const transferMatch = responseText.match(/(\d+)\s+from\s+(\w+)\s+to\s+(\w+)/);
+            if (transferMatch) {
+                keywords.push(`amount: ${transferMatch[1]}`);
+                keywords.push(`fromAddress: ${transferMatch[2]}`);
+                keywords.push(`toAddress: ${transferMatch[3]}`);
+            }
+        }
+
+        res.json(keywords);
+
+    } catch (error) {
+        console.error('Error with OpenAI API:', error);
+        res.status(500).send('Internal Server Error');
+    }
 });
-
-app.listen(port, () => {
-  console.log(`Chatbot backend listening at http://localhost:${port}`);
+app.get('/', (req, res) => {
+    res.send('Hello, this is the chatbot backend!');
 });
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+app.use(cors());
