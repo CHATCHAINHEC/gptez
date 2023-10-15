@@ -6,7 +6,7 @@ const Footer = () => {
     <footer className="py-4 px-8 bg-black">
       <div className="container mx-auto">
         <p className="text-center text-white">
-          Copyright &copy; {new Date().getFullYear()} GPTez. Tous droits réservés.
+          Copyright &copy; {new Date().getFullYear()} Vibrant  Tous droits réservés
         </p>
         
       </div>
