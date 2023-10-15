@@ -19,7 +19,7 @@ const Header = () => {
         <div className="flex items-center">
           <Image src="/../logo.jpeg" alt="GPTez Logo" width={40} height={40} className="mr-4" />  
           <Link href="/">
-            <span className="text-white text-3xl font-semibold cursor-pointer mr-4">GPTez</span>
+            <span className="text-white text-3xl font-semibold cursor-pointer mr-4">Vibrant</span>
           </Link>
           {wallet && <span className="text-white text-lg">{displayWalletAddress()}</span>}
         </div>
