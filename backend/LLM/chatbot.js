@@ -13,7 +13,7 @@ app.post('/generate', async (req, res) => {
 
     // Appelez l'API OpenAI ici (assurez-vous d'avoir configuré votre clé d'API)
     const OPENAI_API_URL = 'https://api.openai.com/v1/engines/davinci/completions';
-    const API_KEY = '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 '; // !!! Remplacez par votre clé API et ne partagez jamais votre clé API en public !!!
+    const API_KEY = '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'; // !!! Remplacez par votre clé API et ne partagez jamais votre clé API en public !!!
 
     try {
         const openaiResponse = await axios.post(OPENAI_API_URL, {
